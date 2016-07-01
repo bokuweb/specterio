@@ -4,26 +4,49 @@ const webdriverio = require('webdriverio');
 const co = require('co');
 const selenium = require('selenium-standalone');
 const log = require('./helper/log');
-const clinet = webdriverio.remote({ desiredCapabilities: { browserName: 'firefox' } });
+const cli = require('./helper/cli');
+const client = webdriverio.remote({ desiredCapabilities: { browserName: 'firefox' } });
+const capturedPath = [];
+
+const initialize = (client, url) => (
+  new Promise((resolve) => {
+    client
+      .url(url)
+      .waitForExist('body', 60000)
+      .saveScreenshot('./screenshot/snapshot.png')
+      .getAttribute('a', 'href')
+      .then(hrefs => {
+        log.debug('initialized');
+        log.debug(`url = ${url}`);
+        resolve(hrefs);
+      })
+      .catch(err => log.error(err));
+  })
+);
 
 selenium.start(() => {
   const run = co.wrap(function * (url, depth, index) {
-    return new Promise((resolve, reject) => {
-      clinet
-        .init()
-        .url(url)
-        .waitForExist('body', 60000)
-        .getAttribute('a', 'href')
-        .then(attr => log.debug(attr))
-        .saveScreenshot('./screenshot/snapshot.png')
-        .then(resolve)
-        .catch(reject);
+    if (depth >= 2) return;
+    log.debug(`depth = ${depth}`);
+    const hrefs = yield initialize(client, url);
+    capturedPath.push(url);
+    const filterdHrefs = hrefs
+             .filter((href, i, self) => (
+               new RegExp(`^${cli.flags.url}|^(?!http)`).test(href) ||
+               self.indexOf(href) === i ||
+               capturedPath.indexOf(href) === -1
+             ));
+    log.debug(filterdHrefs);
+    for (const [i, href] of filterdHrefs.entries()) {
+      yield run(href, depth + 1, i);
+    }
+  });
+  client.init().then(() => {
+    run(cli.flags.url, 0, 0).then(() => {
+      log.info('comlete');
     });
-  });
+  })
 
-  run('https://www.npmjs.com/', 0, 0).then(() => {
-    log.info('comlete');
-  });
 });
 
 
