@@ -31,11 +31,12 @@ selenium.start(() => {
     const hrefs = yield initialize(client, url);
     capturedPath.push(url);
     const filterdHrefs = hrefs
-             .filter((href, i, self) => (
-               new RegExp(`^${cli.flags.url}|^(?!http)`).test(href) ||
-               self.indexOf(href) === i ||
-               capturedPath.indexOf(href) === -1
-             ));
+            .filter((href, i, self) => (
+              new RegExp(`^${cli.flags.url}|^(?!http)`).test(href) &&
+              new RegExp('^(?!mailto)').test(href) &&
+              self.indexOf(href) === i &&
+              capturedPath.indexOf(href) === -1
+            ));
     log.debug(filterdHrefs);
     for (const [i, href] of filterdHrefs.entries()) {
       yield run(href, depth + 1, i);
