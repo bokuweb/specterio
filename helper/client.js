@@ -10,10 +10,10 @@ exports.initialize = (client, url) => (
   })
 );
 
-exports.capture = (client) => (
+exports.capture = (client, name) => (
   new Promise((resolve) => {
     client
-      .saveScreenshot('./screenshot/snapshot.png')
+      .saveScreenshot(name)
       .then(resolve)
       .catch(err => log.error(err));
   })
