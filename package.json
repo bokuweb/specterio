@@ -20,8 +20,10 @@
   "homepage": "https://github.com/bokuweb/specterio#readme",
   "dependencies": {
     "co": "^4.6.0",
+    "image-diff": "^1.6.2",
     "loglevel": "^1.4.1",
     "meow": "^3.7.0",
+    "moment": "^2.14.1",
     "selenium-standalone": "^5.4.0",
     "webdriverio": "^4.1.1"
   },
