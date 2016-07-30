@@ -1,3 +1,4 @@
+
 const meow = require('meow');
 
 module.exports = meow(`
@@ -13,5 +14,6 @@ module.exports = meow(`
 `, {
   alias: {
     u: 'url',
+    d: 'depth',
   },
 });

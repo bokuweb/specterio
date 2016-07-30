@@ -29,12 +29,12 @@ selenium.start(() => {
   }
   fs.mkdirSync(`data/${name}/${date}`);
   const run = co.wrap(function * (url, depth) {
-    if (depth >= 1) return;
-    log.debug(`depth = ${depth}`);
+    if (depth && depth > cli.flags.depth) return;
+    log.debug(`Current depth = ${depth}`);
     yield initialize(client, url);
     yield beforeEach(client);
     yield before(client, url);
-    yield capture(client, `data/${name}/${date}/_${url.replace(cli.flags.url, '')}.png`);
+    yield capture(client, `data/${name}/${date}/_${url.replace(cli.flags.url, '').replace(/\//g, '_')}.png`);
     const hrefs = yield getLinks(client);
     capturedPath.push(url);
     const validHrefs = hrefs.filter((href, i, self) => (
