@@ -2,7 +2,9 @@ const hooks = require('../spector.conf');
 
 exports.beforeEach = client => (
   new Promise((resolve, reject) => {
-    hooks.beforeEach(client, resolve, reject);
+    const hook = hooks.beforeEach;
+    if (hook) return hook(client, resolve, reject);
+    return resolve();
   })
 );
 

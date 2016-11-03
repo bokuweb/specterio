@@ -18,23 +18,36 @@ const isValidPath = (href, i, self, capturedPath) => (
   capturedPath.indexOf(href) === -1
 );
 
-selenium.start(() => {
-  const capturedPath = [];
-  const date = moment().format('YYYYMMDDHHmmss');
-  const name = `${cli.flags.url}`.replace(/https?:\/\//, '');
+const createCaptureDir = (name, date) => {
   try {
     fs.mkdirSync(`data/${name}`);
   } catch (e) {
     if (e.code === 'EEXIST') log.info('Project directory detected.');
   }
-  fs.mkdirSync(`data/${name}/${date}`);
+  try {
+    fs.mkdirSync(`data/${name}/${date}`);
+  } catch (e) {
+    process.exit();
+  }
+};
+
+const createFilename = (name, date, root, url) => (
+  `data/${name}/${date}/_${url.replace(root, '').replace(/\//g, '_')}.png`
+);
+
+selenium.start(() => {
+  const capturedPath = [];
+  const date = moment().format('YYYYMMDDHHmmss');
+  const name = `${cli.flags.url}`.replace(/https?:\/\//, '');
+  createCaptureDir(name, date);
   const run = co.wrap(function * (url, depth) {
     if (depth && depth > cli.flags.depth) return;
     log.debug(`Current depth = ${depth}`);
+    const file = createFilename(name, date, cli.flags.url, url);
     yield initialize(client, url);
     yield beforeEach(client);
     yield before(client, url);
-    yield capture(client, `data/${name}/${date}/_${url.replace(cli.flags.url, '').replace(/\//g, '_')}.png`);
+    yield capture(client, file);
     const hrefs = yield getLinks(client);
     capturedPath.push(url);
     const validHrefs = hrefs.filter((href, i, self) => (
